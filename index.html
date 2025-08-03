@@ -162,7 +162,7 @@
        }
    </style>
 </head>
-<body
+<body>
    <main class="min-h-screen bg-gradient-to-br from-indigo-700 to-purple-800 flex items-center justify-center p-4">
 
    <div id="app-container" class="bg-white p-8 rounded-2xl shadow-3xl w-full max-w-2xl transform transition-all duration-300 hover:scale-[1.005]">
@@ -496,40 +496,33 @@
 
            while (retries < maxRetries) {
                try {
-                   // Refined prompt to ensure only translation is returned
-                   const prompt = `Translate the following Manipuri text to ${targetLanguageSelect.value}. Only output the translated text without any prefixes, conversational phrases, or extra information. If the input is Romanized Manipuri, process it as such. If it's Meitei Mayek, process it as Meitei Mayek.
-                   \nManipuri Text: ${inputText}`;
+                   // Call secure backend API
+                   const payload = {
+                       inputText: inputText,
+                       targetLanguage: targetLanguageSelect.value
+                   };
 
-                   const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-                   const payload = { contents: chatHistory };
-                   
-                   const apiKey = "AIzaSyAMJuykEIbMMPcpvl5NyQE5Nl1ZT5LrsMk";
-                   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-                   const response = await fetch(apiUrl, {
+                   const response = await fetch('/api/translate', {
                        method: 'POST',
                        headers: { 'Content-Type': 'application/json' },
                        body: JSON.stringify(payload)
                    });
 
                    if (!response.ok) {
-                       const errorBody = await response.text();
-                       console.error(`Translation API HTTP error: ${response.status} ${response.statusText}`, errorBody);
-                       throw new Error(`HTTP error! status: ${response.status}`);
+                       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                       console.error(`Translation API HTTP error: ${response.status} ${response.statusText}`, errorData);
+                       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                    }
 
                    const result = await response.json();
 
-                   if (result.candidates && result.candidates.length > 0 &&
-                       result.candidates[0].content && result.candidates[0].content.parts &&
-                       result.candidates[0].content.parts.length > 0) {
-                       const rawText = result.candidates[0].content.parts[0].text;
-                       const cleanedText = cleanTranslationOutput(rawText); // Clean the output
+                   if (result.translatedText) {
+                       const cleanedText = cleanTranslationOutput(result.translatedText); // Clean the output
                        translatedTextElem.value = cleanedText;
                        hasTranslatedOnce = true; // Mark that a translation has been successfully completed
                        break; // Exit loop on successful translation
                    } else {
-                       console.error('Unexpected Translation API response structure:', result);
+                       console.error('Unexpected backend response structure:', result);
                        throw new Error('Unexpected API response structure or missing content.');
                    }
                } catch (error) {
@@ -616,65 +609,30 @@
 
            while (retries < maxRetries) {
                try {
-                   // Simplified voice determination based on target language
-                   let voiceName = 'Kore'; // Default voice
-                   const targetLang = targetLanguageSelect.value;
-                   // A comprehensive mapping would be more complex, this provides examples
-                   if (targetLang === 'English') voiceName = 'Zephyr';
-                   else if (targetLang === 'Hindi') voiceName = 'Rasalgethi';
-                   else if (targetLang === 'Bengali') voiceName = 'Sadachbia';
-                   else if (targetLang === 'Spanish') voiceName = 'Autonoe';
-                   else if (targetLang === 'French') voiceName = 'Charon';
-                   else if (targetLang === 'German') voiceName = 'Fenrir';
-                   else if (targetLang === 'Japanese') voiceName = 'Leda';
-                   else if (targetLang === 'Korean') voiceName = 'Orus';
-                   else if (targetLang === 'Italian') voiceName = 'Aoede';
-                   else if (targetLang === 'Portuguese') voiceName = 'Callirrhoe';
-                   else if (targetLang === 'Russian') voiceName = 'Enceladus';
-                   else if (targetLang === 'Dutch') voiceName = 'Iapetus';
-                   else if (targetLang === 'Polish') voiceName = 'Umbriel';
-                   else if (targetLang === 'Thai') voiceName = 'Algenib';
-                   else if (targetLang === 'Turkish') voiceName = 'Rasalgethi';
-                   else if (targetLang === 'Vietnamese') voiceName = 'Laomedeia';
-                   else if (targetLang === 'Assamese') voiceName = 'Achernar';
-
+                   // Call secure backend TTS API
                    const payload = {
-                       contents: [{
-                           parts: [{ text: translatedText }]
-                       }],
-                       generationConfig: {
-                           responseModalities: ["AUDIO"],
-                           speechConfig: {
-                               voiceConfig: {
-                                   prebuiltVoiceConfig: { voiceName: voiceName }
-                               }
-                           }
-                       },
-                       model: "gemini-2.5-flash-preview-tts"
+                       text: translatedText,
+                       targetLanguage: targetLanguageSelect.value
                    };
-         
-                   const apiKey = "AIzaSyAMJuykEIbMMPcpvl5NyQE5Nl1ZT5LrsMk";
-                   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
 
-                   console.log("TTS: Fetching audio from API...");
-                   const response = await fetch(apiUrl, {
+                   console.log("TTS: Fetching audio from backend...");
+                   const response = await fetch('/api/tts', {
                        method: 'POST',
                        headers: { 'Content-Type': 'application/json' },
                        body: JSON.stringify(payload)
                    });
 
                    if (!response.ok) {
-                       const errorBody = await response.text();
-                       console.error(`TTS API HTTP error: ${response.status} ${response.statusText}`, errorBody);
-                       throw new Error(`HTTP error! status: ${response.status}`);
+                       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                       console.error(`TTS API HTTP error: ${response.status} ${response.statusText}`, errorData);
+                       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                    }
 
                    const result = await response.json();
-                   console.log("TTS: API response received:", result);
+                   console.log("TTS: Backend response received:", result);
 
-                   const part = result?.candidates?.[0]?.content?.parts?.[0];
-                   const audioData = part?.inlineData?.data;
-                   const mimeType = part?.inlineData?.mimeType;
+                   const audioData = result.audioData;
+                   const mimeType = result.mimeType;
 
                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
                        const sampleRateMatch = mimeType.match(/rate=(\d+)/);
@@ -704,8 +662,8 @@
                            break; // Exit retry loop
                        }
                    } else {
-                       console.error('TTS: API response did not contain expected audio data:', result);
-                       throw new Error('Unexpected TTS API response structure or missing audio data.');
+                       console.error('TTS: Backend response did not contain expected audio data:', result);
+                       throw new Error('Unexpected TTS backend response structure or missing audio data.');
                    }
                } catch (error) {
                    console.error('TTS: Execution error:', error);
