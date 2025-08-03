@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <link rel="icon" type="image/png" href="icon.png">
+
+   <meta name="description" content="A free web app that translates Meiteilon (Manipuri) into English, Hindi, and other languages its easy to use,simple ui advance and accurate features.">
+<meta name="keywords" content="Meiteilon, Manipuri, Translator, Language, English, Hindi, Web App">
+<meta name="author" content="Bunilkumar">
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Manipuri Translator</title>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+   <script src="https://cdn.tailwindcss.com"></script>
+   <style>
+       body {
+           font-family: 'Inter', sans-serif;
+           -webkit-font-smoothing: antialiased;
+           -moz-osx-font-smoothing: grayscale;
+       }
+
+       .message-box {
+           position: fixed;
+           top: 20px;
+           left: 50%;
+           transform: translateX(-50%);
+           padding: 1rem 2rem;
+           border-radius: 0.75rem;
+           box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+           z-index: 1000;
+           opacity: 0;
+           visibility: hidden;
+           transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out, transform 0.4s ease-in-out;
+           min-width: 250px;
+           text-align: center;
+           font-weight: 600;
+       }
+       .message-box.show {
+           opacity: 1;
+           visibility: visible;
+           transform: translateX(-50%) translateY(0);
+       }
+       .message-box.success {
+           background-color: #d1fae5;
+           color: #065f46;
+           border: 1px solid #a7f3d0;
+       }
+       .message-box.error {
+           background-color: #fee2e2;
+           color: #991b1b;
+           border: 1px solid #fca5a5;
+       }
+
+       .btn-primary {
+           background-image: linear-gradient(to right, #6366f1, #a855f7);
+           color: white;
+           border: none;
+           transition: all 0.3s ease;
+           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+       }
+       .btn-primary:hover {
+           background-image: linear-gradient(to right, #4f46e5, #9333ea);
+           box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+           transform: translateY(-2px);
+       }
+       .btn-primary:active {
+           transform: translateY(0);
+           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+       }
+       .btn-primary:disabled {
+           background-image: linear-gradient(to right, #9ca3af, #d1d5db);
+           cursor: not-allowed;
+           opacity: 0.7;
+           box-shadow: none;
+           transform: none;
+       }
+
+       .btn-secondary {
+           background-color: #f3f4f6;
+           color: #4b5563;
+           border: 1px solid #d1d5db;
+           transition: all 0.3s ease;
+           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+       }
+       .btn-secondary:hover {
+           background-color: #e5e7eb;
+           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+           transform: translateY(-1px);
+       }
+       .btn-secondary:active {
+           transform: translateY(0);
+           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+       }
+       .btn-secondary:disabled {
+           opacity: 0.5;
+           cursor: not-allowed;
+       }
+
+       .btn-green {
+           background-image: linear-gradient(to right, #10b981, #34d399);
+           color: white;
+           border: none;
+           transition: all 0.3s ease;
+           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+       }
+       .btn-green:hover {
+           background-image: linear-gradient(to right, #059669, #10b981);
+           box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+           transform: translateY(-2px);
+       }
+       .btn-green:active {
+           transform: translateY(0);
+           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+       }
+       .btn-green:disabled {
+           background-image: linear-gradient(to right, #9ca3af, #d1d5db);
+           cursor: not-allowed;
+           opacity: 0.7;
+           box-shadow: none;
+           transform: none;
+       }
+
+       .btn-red {
+           background-image: linear-gradient(to right, #ef4444, #f87171);
+           color: white;
+           border: none;
+           transition: all 0.3s ease;
+           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+       }
+       .btn-red:hover {
+           background-image: linear-gradient(to right, #dc2626, #ef4444);
+           box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+           transform: translateY(-2px);
+       }
+       .btn-red:active {
+           transform: translateY(0);
+           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+       }
+       .btn-red:disabled {
+           background-image: linear-gradient(to right, #9ca3af, #d1d5db);
+           cursor: not-allowed;
+           opacity: 0.7;
+           box-shadow: none;
+           transform: none;
+       }
+
+       textarea, select {
+           background-color: #f9fafb;
+           border-color: #d1d5db;
+           border-width: 1px;
+           padding: 1rem;
+           border-radius: 0.75rem;
+           box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+       }
+       textarea:focus, select:focus {
+           outline: none;
+           border-color: #818cf8;
+           box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+       }
+       textarea.cursor-not-allowed {
+            background-color: #e5e7eb;
+            color: #6b7280;
+       }
+   </style>
+</head>
+<body>
+   <main class="min-h-screen bg-gradient-to-br from-indigo-700 to-purple-800 flex items-center justify-center p-4">
+
+   <div id="app-container" class="bg-white p-8 rounded-2xl shadow-3xl w-full max-w-2xl transform transition-all duration-300 hover:scale-[1.005]">
+       <h1 class="text-5xl font-extrabold text-center text-gray-900 mb-8 tracking-tight drop-shadow-md">
+           <span class="text-indigo-600">Manipuri</span> Translator
+       </h1>
+
+       <div id="messageDisplay" class="hidden px-4 py-3 rounded-md relative mb-4 font-medium text-lg" role="alert">
+           <span id="messageText" class="block sm:inline"></span>
+       </div>
+
+       <div class="mb-6">
+           <label for="inputText" class="block text-gray-700 text-xl font-semibold mb-2">
+               Enter sentence:
+           </label>
+           <textarea
+               id="inputText"
+               class="w-full text-lg"
+               placeholder="Type your text here..."
+               rows="5"
+           ></textarea>
+       </div>
+
+       <div class="mb-8 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-4">
+           <div class="w-full sm:w-1/2">
+               <label for="targetLanguage" class="block text-gray-700 text-xl font-semibold mb-2">
+                   Translate to:
+               </label>
+               <select
+                   id="targetLanguage"
+                   class="w-full text-lg"
+               >
+               </select>
+           </div>
+           <button
+               id="translateButton"
+               class="w-full sm:w-auto px-10 py-4 rounded-xl text-lg font-bold btn-primary"
+           >
+               <div class="flex items-center justify-center">
+                   <svg id="translateSpinner" class="hidden animate-spin -ml-1 mr-3 h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                   </svg>
+                   <span id="translateButtonText">Translate</span>
+               </div>
+           </button>
+       </div>
+
+       <div class="mb-6">
+           <label for="translatedText" class="block text-gray-700 text-xl font-semibold mb-2">
+               Translated Text:
+           </label>
+           <textarea
+               id="translatedText"
+               class="w-full text-lg cursor-not-allowed"
+               placeholder="Translation will appear here..."
+               readOnly
+               rows="5"
+           ></textarea>
+       </div>
+
+       <div class="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4">
+           <button
+               id="clearButton"
+               class="w-full sm:w-auto px-8 py-3 rounded-xl text-md font-bold btn-red"
+           >
+               Clear Input
+           </button>
+           <button
+               id="copyButton"
+               class="w-full sm:w-auto px-8 py-3 rounded-xl text-md font-bold btn-secondary"
+           >
+               Copy Text
+           </button>
+           <button
+               id="speakButton"
+               class="w-full sm:w-auto px-8 py-3 rounded-xl text-md font-bold btn-green"
+           >
+               <div class="flex items-center justify-center">
+                   <svg id="speakSpinner" class="hidden animate-spin -ml-1 mr-3 h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                   </svg>
+                   <span id="speakButtonText">Speak Translation</span>
+               </div>
+           </button>
+       </div>
+
+       <p class="mt-8 text-center text-gray-500 text-sm">
+            Meitei Mayek rendering depends on your device's font support.
+       </p>
+   </div>
+
+   <div id="customMessageBox" class="message-box">
+       <span id="customMessageText"></span>
+   </div>
+
+   <script>
+       // Utility function to convert signed 16-bit PCM audio data to WAV format
+       function pcmToWav(pcmData, sampleRate) {
+           const pcm16 = new Int16Array(pcmData);
+           const wavBuffer = new ArrayBuffer(44 + pcm16.length * 2);
+           const view = new DataView(wavBuffer);
+
+           // RIFF chunk descriptor
+           writeString(view, 0, 'RIFF'); // Chunk ID
+           view.setUint32(4, 36 + pcm16.length * 2, true); // Chunk Size
+           writeString(view, 8, 'WAVE'); // Format
+           // FMT sub-chunk
+           writeString(view, 12, 'fmt '); // Subchunk1 ID
+           view.setUint32(16, 16, true); // Subchunk1 Size (16 for PCM)
+           view.setUint16(20, 1, true); // Audio Format (1 = PCM)
+           view.setUint16(22, 1, true); // Num Channels (1 for mono)
+           view.setUint32(24, sampleRate, true); // Sample Rate
+           view.setUint32(28, sampleRate * 2, true); // Byte Rate (SampleRate * NumChannels * BitsPerSample/8)
+           view.setUint16(32, 2, true); // Block Align (NumChannels * BitsPerSample/8)
+           view.setUint16(34, 16, true); // Bits Per Sample
+           // DATA sub-chunk
+           writeString(view, 36, 'data'); // Subchunk2 ID
+           view.setUint32(40, pcm16.length * 2, true); // Subchunk2 Size (NumSamples * NumChannels * BitsPerSample/8)
+
+           // Write PCM data
+           for (let i = 0; i < pcm16.length; i++) {
+               view.setInt16(44 + i * 2, pcm16[i], true);
+           }
+
+           return new Blob([view], { type: 'audio/wav' });
+       }
+
+       // Helper to write string to DataView
+       function writeString(view, offset, string) {
+           for (let i = 0; i < string.length; i++) {
+               view.setUint8(offset + i, string.charCodeAt(i));
+           }
+       }
+
+       // Function to convert base64 string to ArrayBuffer
+       function base64ToArrayBuffer(base64) {
+           const binaryString = window.atob(base64);
+           const len = binaryString.length;
+           const bytes = new Uint8Array(len);
+           for (let i = 0; i < len; i++) {
+               bytes[i] = binaryString.charCodeAt(i);
+           }
+           return bytes.buffer;
+       }
+
+       /**
+        * Cleans the translation output by removing common introductory prefixes
+        * that the LLM might add.
+        * @param {string} text The raw text from the LLM.
+        * @returns {string} The cleaned translation text.
+        */
+       function cleanTranslationOutput(text) {
+           const prefixes = [
+               "Translation: ",
+               "Translated text: ",
+               "Here is the translation: ",
+               "The translated text is: ",
+               "Translation*** ",
+               "Translated: ",
+               "Here's your translation: ",
+               "The translation is: ",
+               "Output: ",
+               "Sure, here's the translation: ",
+               "Here you go: ",
+               "Manipuri to ",
+               "In "
+           ];
+           let cleanedText = text.trim();
+
+           for (const prefix of prefixes) {
+               if (cleanedText.toLowerCase().startsWith(prefix.toLowerCase())) {
+                   cleanedText = cleanedText.substring(prefix.length).trim();
+                   break;
+               }
+           }
+
+           if (cleanedText.startsWith('"') && cleanedText.endsWith('"')) {
+               cleanedText = cleanedText.substring(1, cleanedText.length - 1).trim();
+           }
+           if (cleanedText.startsWith("'") && cleanedText.endsWith("'")) {
+               cleanedText = cleanedText.substring(1, cleanedText.length - 1).trim();
+           }
+
+           cleanedText = cleanedText.trim();
+
+           return cleanedText;
+       }
+
+
+       // --- Global Variables for DOM Elements and State ---
+       let inputTextElem, translatedTextElem, targetLanguageSelect,
+           translateButton, copyButton, speakButton, clearButton,
+           translateSpinner, translateButtonText,
+           speakSpinner, speakButtonText,
+           messageDisplay, messageText, customMessageBox, customMessageText;
+
+       // Flags to manage loading states and whether a translation has occurred
+       let isLoading = false;
+       let ttsLoading = false;
+       let hasTranslatedOnce = false; // New flag to track if translation has successfully run
+
+       // List of available target languages
+       const availableLanguages = [
+           'English', 'Hindi', 'Bengali', 'Assamese', 'Spanish', 'French',
+           'German', 'Japanese', 'Korean', 'Italian', 'Portuguese', 'Russian',
+           'Dutch', 'Polish', 'Thai', 'Turkish', 'Vietnamese'
+       ];
+
+       // --- Message Display Function ---
+       // Shows a temporary message to the user (error or success)
+       function showMessage(message, type = 'error') {
+           // For transient messages like "copied to clipboard", use customMessageBox
+           if (type === 'success' && message.includes('copied')) {
+               customMessageText.textContent = message;
+               customMessageBox.classList.add('show', 'success');
+               setTimeout(() => {
+                   customMessageBox.classList.remove('show');
+               }, 2000); // Hide after 2 seconds
+           } else {
+               // For other errors/messages, use the main messageDisplay
+               messageText.textContent = message;
+               messageDisplay.classList.remove('hidden', 'bg-red-100', 'border-red-400', 'text-red-700', 'bg-green-100', 'border-green-400', 'text-green-700');
+
+               if (type === 'error') {
+                   messageDisplay.classList.add('bg-red-100', 'border-red-400', 'text-red-700');
+               } else { /* type === 'success' */
+                   messageDisplay.classList.add('bg-green-100', 'border-green-400', 'text-green-700');
+               }
+               messageDisplay.classList.remove('hidden');
+
+               setTimeout(() => {
+                   messageDisplay.classList.add('hidden');
+               }, 5000); // Hide after 5 seconds
+           }
+       }
+
+       // Clears any currently displayed messages
+       function clearMessages() {
+           messageDisplay.classList.add('hidden');
+           messageText.textContent = '';
+           customMessageBox.classList.remove('show');
+           customMessageText.textContent = '';
+       }
+
+       // --- UI State Update Functions ---
+       // Updates the appearance and disabled state of the Translate button (now handles regenerate text)
+       function updateTranslateButtonState() {
+           if (isLoading) {
+               translateButton.classList.add('btn-primary-disabled', 'animate-pulse');
+               translateButton.classList.remove('btn-primary');
+               translateSpinner.classList.remove('hidden');
+               translateButtonText.textContent = 'Translating...'; // Stays 'Translating...' during active operation
+               translateButton.disabled = true;
+           } else {
+               translateButton.classList.remove('btn-primary-disabled', 'animate-pulse');
+               translateButton.classList.add('btn-primary');
+               translateSpinner.classList.add('hidden');
+               translateButton.disabled = false;
+
+               // Change button text based on whether a translation has been done
+               if (hasTranslatedOnce && inputTextElem.value.trim() !== '') {
+                   translateButtonText.textContent = 'Regenerate';
+               } else {
+                   translateButtonText.textContent = 'Translate';
+               }
+
+               // Disable translate/regenerate if input is empty
+               if (inputTextElem.value.trim() === '') {
+                    translateButton.classList.add('opacity-50', 'cursor-not-allowed');
+                    translateButton.disabled = true;
+               } else {
+                    translateButton.classList.remove('opacity-50', 'cursor-not-allowed');
+               }
+           }
+       }
+
+       // Updates the appearance and disabled state of the Speak button
+       function updateSpeakButtonState() {
+           const hasTranslatedText = translatedTextElem.value.trim() !== '';
+           if (ttsLoading || !hasTranslatedText) {
+               speakButton.classList.add('btn-green-disabled', 'animate-pulse');
+               speakButton.classList.remove('btn-green');
+               if (ttsLoading) {
+                   speakSpinner.classList.remove('hidden');
+                   speakButtonText.textContent = 'Speaking...';
+               } else { // If not loading but disabled (e.g. no text)
+                   speakSpinner.classList.add('hidden');
+                   speakButtonText.textContent = 'Speak Translation';
+               }
+               speakButton.disabled = true;
+           } else {
+               speakButton.classList.remove('btn-green-disabled', 'animate-pulse');
+               speakButton.classList.add('btn-green');
+               speakButton.disabled = false;
+               speakSpinner.classList.add('hidden');
+               speakButtonText.textContent = 'Speak Translation';
+           }
+       }
+
+       // Updates the appearance and disabled state of the Copy button
+       function updateCopyButtonState() {
+           if (!translatedTextElem.value.trim()) {
+               copyButton.classList.add('btn-secondary-disabled');
+               copyButton.classList.remove('btn-secondary');
+               copyButton.disabled = true;
+           } else {
+               copyButton.classList.remove('btn-secondary-disabled');
+               copyButton.classList.add('btn-secondary');
+               copyButton.disabled = false;
+           }
+       }
+
+       // --- Event Handlers ---
+       // Handles the translation process
+       async function handleTranslate() {
+           const inputText = inputTextElem.value.trim();
+           if (!inputText) {
+               showMessage('Please enter text to translate.');
+               return;
+           }
+           clearMessages(); // Clear previous messages
+           isLoading = true;
+           updateTranslateButtonState();
+           translatedTextElem.value = ''; // Clear previous translation before new one
+
+           let retries = 0;
+           const maxRetries = 5;
+           let delay = 1000; // Initial delay of 1 second
+
+           while (retries < maxRetries) {
+               try {
+                   // Call secure backend API
+                   const payload = {
+                       inputText: inputText,
+                       targetLanguage: targetLanguageSelect.value
+                   };
+
+                   const response = await fetch('/api/translate', {
+                       method: 'POST',
+                       headers: { 'Content-Type': 'application/json' },
+                       body: JSON.stringify(payload)
+                   });
+
+                   if (!response.ok) {
+                       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                       console.error(`Translation API HTTP error: ${response.status} ${response.statusText}`, errorData);
+                       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                   }
+
+                   const result = await response.json();
+
+                   if (result.translatedText) {
+                       const cleanedText = cleanTranslationOutput(result.translatedText); // Clean the output
+                       translatedTextElem.value = cleanedText;
+                       hasTranslatedOnce = true; // Mark that a translation has been successfully completed
+                       break; // Exit loop on successful translation
+                   } else {
+                       console.error('Unexpected backend response structure:', result);
+                       throw new Error('Unexpected API response structure or missing content.');
+                   }
+               } catch (error) {
+                   console.error('Translation error:', error);
+                   showMessage(`Failed to translate: ${error.message}. Retrying...`);
+                   retries++;
+                   await new Promise(res => setTimeout(res, delay)); // Wait before retrying
+                   delay *= 2; // Exponential backoff
+               } finally {
+                   isLoading = false;
+                   updateTranslateButtonState(); // Update button state (will now show Regenerate if successful)
+                   updateCopyButtonState(); // Update copy button state after translation attempt
+                   updateSpeakButtonState(); // Update speak button state after translation attempt
+               }
+           }
+
+           if (retries === maxRetries) {
+               showMessage('Failed to translate after multiple attempts. Please try again later.');
+           }
+       }
+
+       // Handles copying the translated text to clipboard
+       function handleCopy() {
+           const textToCopy = translatedTextElem.value.trim();
+           if (textToCopy) {
+               // Exclusively use document.execCommand('copy') as navigator.clipboard is blocked
+               const tempInput = document.createElement('textarea');
+               tempInput.value = textToCopy;
+               // Position it off-screen and make it tiny to avoid visual disruption
+               tempInput.style.position = 'absolute';
+               tempInput.style.left = '-9999px';
+               tempInput.style.top = '0px';
+               tempInput.style.width = '1px';
+               tempInput.style.height = '1px';
+               tempInput.style.padding = '0';
+               tempInput.style.margin = '0';
+               tempInput.style.border = 'none';
+               tempInput.style.outline = 'none';
+               tempInput.style.boxShadow = 'none';
+               tempInput.style.background = 'transparent';
+               document.body.appendChild(tempInput);
+
+               // Select the text within the temporary textarea
+               tempInput.select();
+               // Ensure full selection range for cross-browser compatibility
+               tempInput.setSelectionRange(0, tempInput.value.length);
+               // Focus the element
+               tempInput.focus();
+
+               try {
+                   // Execute the copy command
+                   const successful = document.execCommand('copy');
+                   if (successful) {
+                       showMessage('Translated text copied to clipboard!', 'success');
+                   } else {
+                       throw new Error('document.execCommand("copy") failed');
+                   }
+               } catch (e) {
+                   console.error('Failed to copy text using execCommand:', e);
+                   showMessage('Could not copy text automatically. Please select and copy manually.', 'error');
+               } finally {
+                   // Clean up: remove the temporary textarea
+                   document.body.removeChild(tempInput);
+               }
+           }
+       }
+
+
+       // Handles speaking the translated text using Text-to-Speech API
+       async function handleSpeakTranslatedText() {
+           const translatedText = translatedTextElem.value.trim();
+           if (!translatedText) {
+               showMessage('No translated text to speak.');
+               return;
+           }
+           clearMessages();
+           ttsLoading = true;
+           updateSpeakButtonState();
+           console.log("TTS: Attempting to speak translated text...");
+
+           let retries = 0;
+           const maxRetries = 5;
+           let delay = 1000;
+
+           while (retries < maxRetries) {
+               try {
+                   // Call secure backend TTS API
+                   const payload = {
+                       text: translatedText,
+                       targetLanguage: targetLanguageSelect.value
+                   };
+
+                   console.log("TTS: Fetching audio from backend...");
+                   const response = await fetch('/api/tts', {
+                       method: 'POST',
+                       headers: { 'Content-Type': 'application/json' },
+                       body: JSON.stringify(payload)
+                   });
+
+                   if (!response.ok) {
+                       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                       console.error(`TTS API HTTP error: ${response.status} ${response.statusText}`, errorData);
+                       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                   }
+
+                   const result = await response.json();
+                   console.log("TTS: Backend response received:", result);
+
+                   const audioData = result.audioData;
+                   const mimeType = result.mimeType;
+
+                   if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                       const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                       // Default to 16000 if sample rate not found in mimeType
+                       const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
+                       console.log(`TTS: Audio data received. MimeType: ${mimeType}, SampleRate: ${sampleRate}`);
+
+                       const pcmData = base64ToArrayBuffer(audioData);
+                       console.log("TTS: PCM data converted to ArrayBuffer.");
+
+                       const wavBlob = pcmToWav(pcmData, sampleRate);
+                       console.log("TTS: PCM converted to WAV Blob.");
+
+                       const audioUrl = URL.createObjectURL(wavBlob);
+                       console.log("TTS: Audio URL created:", audioUrl);
+
+                       const audio = new Audio(audioUrl);
+                       try {
+                           await audio.play(); // Use await to catch promise rejections
+                           console.log("TTS: Audio playback initiated successfully.");
+                           break; // Exit loop on successful playback
+                       } catch (playError) {
+                           console.error('TTS: Audio playback failed:', playError);
+                           // This likely means an autoplay policy block or other playback issue
+                           showMessage('Audio playback blocked or failed. Please ensure sound is enabled and try again after interacting with the page.', 'error');
+                           // Do NOT retry for autoplay errors, as they won't resolve without direct user interaction
+                           break; // Exit retry loop
+                       }
+                   } else {
+                       console.error('TTS: Backend response did not contain expected audio data:', result);
+                       throw new Error('Unexpected TTS backend response structure or missing audio data.');
+                   }
+               } catch (error) {
+                   console.error('TTS: Execution error:', error);
+                   showMessage(`Failed to speak: ${error.message}. Retrying...`);
+                   retries++;
+                   await new Promise(res => setTimeout(res, delay));
+                   delay *= 2;
+               } finally {
+                   ttsLoading = false;
+                   updateSpeakButtonState();
+               }
+           }
+
+           if (retries === maxRetries) {
+               showMessage('Failed to speak after multiple attempts. Please try again later.');
+           }
+       }
+
+       function handleClearInput() {
+           inputTextElem.value = '';
+           translatedTextElem.value = '';
+           clearMessages();
+           hasTranslatedOnce = false;
+           updateTranslateButtonState();
+           updateCopyButtonState();
+           updateSpeakButtonState();
+       }
+
+       document.addEventListener('DOMContentLoaded', () => {
+           inputTextElem = document.getElementById('inputText');
+           translatedTextElem = document.getElementById('translatedText');
+           targetLanguageSelect = document.getElementById('targetLanguage');
+           translateButton = document.getElementById('translateButton');
+           copyButton = document.getElementById('copyButton');
+           speakButton = document.getElementById('speakButton');
+           clearButton = document.getElementById('clearButton');
+           translateSpinner = document.getElementById('translateSpinner');
+           translateButtonText = document.getElementById('translateButtonText');
+           speakSpinner = document.getElementById('speakSpinner');
+           speakButtonText = document.getElementById('speakButtonText');
+           messageDisplay = document.getElementById('messageDisplay');
+           messageText = document.getElementById('messageText');
+           customMessageBox = document.getElementById('customMessageBox');
+           customMessageText = document.getElementById('customMessageText');
+
+           availableLanguages.forEach(lang => {
+               const option = document.createElement('option');
+               option.value = lang;
+               option.textContent = lang;
+               targetLanguageSelect.appendChild(option);
+           });
+
+           targetLanguageSelect.value = 'English';
+
+           translateButton.addEventListener('click', handleTranslate);
+           copyButton.addEventListener('click', handleCopy);
+           speakButton.addEventListener('click', handleSpeakTranslatedText);
+           clearButton.addEventListener('click', handleClearInput);
+
+           inputTextElem.addEventListener('input', () => {
+               updateTranslateButtonState();
+               updateCopyButtonState();
+               updateSpeakButtonState();
+           });
+
+           updateTranslateButtonState();
+           updateCopyButtonState();
+           updateSpeakButtonState();
+       });
+   </script>
+</body>
+</html>
